@@ -1,5 +1,6 @@
 import { Header } from "@/components/header";
 import { MovieCardList } from "@/components/movie-card-list";
+import { Footer } from "@/components/footer";
 
 export default async function Home({
   searchParams,
@@ -10,12 +11,12 @@ export default async function Home({
   const page = Number(pageParam) || 1;
 
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center p-8 min-h-screen pb-20 gap-16 sm:p-16">
+    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen pb-20 gap-16">
       <Header />
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
+      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start p-8 sm:p-16">
         <MovieCardList page={page} query={query} />
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center"></footer>
+      <Footer />
     </div>
   );
 }

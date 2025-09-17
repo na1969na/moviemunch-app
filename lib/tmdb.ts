@@ -1,4 +1,4 @@
-import { Movie } from "@/types/movie";
+import { Movie, Person } from "@/types/movie";
 
 const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
 
@@ -39,20 +39,66 @@ export async function fetchMovies(
   return (await res.json()).results.map((m: any) => ({
     id: m.id,
     title: m.title,
+    release_date: m.release_date,
     backdrop_path: `${TMDB_IMAGE_URL}${m.backdrop_path}`,
   }));
 }
 
 // Fetch movie details from TMDB
 export async function fetchMovieDetails(id: string): Promise<Movie> {
-  const res = await fetch(`${TMDB_API_URL}/movie/${id}`, {
-    headers: {
-      Authorization: `Bearer ${TMDB_API_KEY}`,
-    },
-  });
-  return (await res.json()).results.map((m: any) => ({
-    id: m.id,
-    title: m.title,
-    backdrop_path: `${TMDB_IMAGE_URL}${m.backdrop_path}`,
+  // Fetch movie details and credits in parallel
+  const [movieRes, creditsRes] = await Promise.all([
+    fetch(`${TMDB_API_URL}/movie/${id}`, {
+      headers: {
+        Authorization: `Bearer ${TMDB_API_KEY}`,
+      },
+      next: {
+        revalidate: 60 * 60 * 24,
+      },
+    }),
+    fetch(`${TMDB_API_URL}/movie/${id}/credits`, {
+      headers: {
+        Authorization: `Bearer ${TMDB_API_KEY}`,
+      },
+      next: {
+        revalidate: 60 * 60 * 24,
+      },
+    })
+  ]);
+  
+  if (!movieRes.ok || !creditsRes.ok) {
+    throw new Error("Failed to fetch movie details");
+  }
+  
+  const movieData = await movieRes.json();
+  const creditsData = await creditsRes.json();
+  
+  // Find director
+  const director = creditsData.crew.find((person: any) => person.job === 'Director');
+  
+  // Get top 5 cast members
+  const cast = creditsData.cast.slice(0, 5).map((person: any) => ({
+    id: person.id,
+    name: person.name,
+    profile_path: person.profile_path ? `${TMDB_IMAGE_URL}${person.profile_path}` : null,
+    character: person.character,
   }));
+  
+  return {
+    id: movieData.id,
+    title: movieData.title,
+    overview: movieData.overview,
+    popularity: movieData.popularity,
+    vote_average: movieData.vote_average,
+    release_date: movieData.release_date,
+    backdrop_path: `${TMDB_IMAGE_URL}${movieData.backdrop_path}`,
+    genres: movieData.genres.map((genre: any) => genre.name),
+    director: director ? {
+      id: director.id,
+      name: director.name,
+      profile_path: director.profile_path ? `${TMDB_IMAGE_URL}${director.profile_path}` : null,
+      job: director.job,
+    } : undefined,
+    cast: cast,
+  };
 }
