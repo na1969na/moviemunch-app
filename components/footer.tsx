@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export const Footer = () => {
   return (
-    <footer className="w-full bg-black mt-12 pt-8">
+    <footer className="w-full bg-black pt-8">
       <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="text-center sm:text-left">
           <p className="text-white/90 font-semibold">MovieMunch</p>

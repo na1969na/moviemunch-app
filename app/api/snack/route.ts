@@ -7,7 +7,15 @@ export async function POST(req: NextRequest) {
 
     const res = await generateContent(movie);
 
-    return NextResponse.json(res);
+    // Ensure the response is serializable
+    if (res && typeof res === 'object') {
+      return NextResponse.json(res);
+    } else {
+      return NextResponse.json(
+        { error: "Invalid response format" },
+        { status: 500 }
+      );
+    }
   } catch (e) {
     console.error(e);
     return NextResponse.json(
