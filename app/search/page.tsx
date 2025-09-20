@@ -1,6 +1,6 @@
 import { MovieCardList } from "@/components/movie-card-list";
 
-export default async function Home({
+export default async function SearchPage({
   searchParams,
 }: {
   searchParams: Promise<{ page?: string; query?: string }>;
@@ -10,8 +10,7 @@ export default async function Home({
 
   return (
     <div className="min-h-screen pb-20 px-8 py-8 sm:px-16 sm:py-12">
-        <h1 className="text-5xl font-semibold pb-4 px-4">Movies</h1>
-        <MovieCardList page={page} query={query} />
+      <MovieCardList page={page} query={query} />
     </div>
   );
 }

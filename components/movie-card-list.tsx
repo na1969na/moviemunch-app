@@ -9,7 +9,7 @@ type Props = {
 };
 
 export const MovieCardList = async ({ page, query }: Props) => {
-  const movies = await fetchMovies(page, query);
+  const { movies, totalPages, totalResults } = await fetchMovies(page, query);
 
   if (!movies || movies.length === 0) {
     return <div>error</div>;
@@ -17,14 +17,27 @@ export const MovieCardList = async ({ page, query }: Props) => {
 
   return (
     <div>
-      <h1 className="text-5xl font-semibold pb-4 px-4">Movies</h1>
-      <div className="grid grid-cols-3 gap-1">
-        {movies?.map((movie: Movie) => (
-          <MovieCard key={movie.id} movie={movie} />
+      <div className="grid grid-cols-4 gap-1 relative z-10">
+        {movies?.map((movie: Movie, index: number) => (
+          <div
+            key={movie.id}
+            className="animate-fade-in-up"
+            style={{
+              animationDelay: `${index * 80}ms`,
+              animationFillMode: 'both'
+            }}
+          >
+            <MovieCard movie={movie} />
+          </div>
         ))}
       </div>
 
-      <Pagination currentPage={page} query={query} />
+      <Pagination 
+        currentPage={page} 
+        totalPages={totalPages}
+        totalResults={totalResults}
+        query={query} 
+      />
     </div>
   );
 };

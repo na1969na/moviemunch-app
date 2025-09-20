@@ -13,35 +13,47 @@ const TMDB_IMAGE_URL = "https://image.tmdb.org/t/p/original";
 export async function fetchMovies(
   page?: number,
   query?: string
-): Promise<Movie[]> {
+): Promise<{ movies: Movie[]; totalPages: number; totalResults: number }> {
+  const params = new URLSearchParams({
+    language: "en-US",
+    page: String(page || 1),
+  });
+
+  if (query) {
+    params.set("query", query);
+  } else {
+    params.set("sort_by", "popularity.desc");
+  }
+
   const url = query
-    ? `${TMDB_API_URL}/search/movie?query=${query}`
-    : `${TMDB_API_URL}/discover/movie?`;
-  const res = await fetch(
-    url +
-      new URLSearchParams({
-        language: "en-US",
-        sort_by: "popularity.desc",
-        page: String(page),
-      }),
-    {
-      headers: {
-        Authorization: `Bearer ${TMDB_API_KEY}`,
-      },
-      next: {
-        revalidate: 60 * 60 * 24,
-      },
-    }
-  );
+    ? `${TMDB_API_URL}/search/movie?${params.toString()}`
+    : `${TMDB_API_URL}/discover/movie?${params.toString()}`;
+
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${TMDB_API_KEY}`,
+    },
+    next: {
+      revalidate: 60 * 60 * 24,
+    },
+  });
   if (!res.ok) {
     throw new Error("Failed to fetch movies");
   }
-  return (await res.json()).results.map((m: any) => ({
+  
+  const data = await res.json();
+  const movies = data.results.map((m: any) => ({
     id: m.id,
     title: m.title,
     release_date: m.release_date,
     backdrop_path: `${TMDB_IMAGE_URL}${m.backdrop_path}`,
   }));
+  
+  return {
+    movies,
+    totalPages: data.total_pages,
+    totalResults: data.total_results,
+  };
 }
 
 // Fetch movie details from TMDB
